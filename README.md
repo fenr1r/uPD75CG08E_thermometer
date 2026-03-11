@@ -2,7 +2,7 @@
 
 詳細は以下をご覧ください。
 
-
+https://vita-brevis.hatenablog.com/entry/2026/03/12/023651
 
 ## ファイルに残存している設計の誤り
 

@@ -1,0 +1,721 @@
+ AS V1.42 Beta [Bld 293] - Source File board_divtest.asm - Page 1 - 3/11/2026 17:21:59
+
+
+    1/  0 :                                     cpu 7508
+    2/  0 :                                     org 0
+    3/  0 : 20 40                       	JMP	init
+    4/  2 :                             
+    5/  2 : =10H                        DLY_REG1		equ	010h
+    6/  2 : =11H                        DLY_REG2		equ  011h
+    7/  2 : =12H                        DLY_REG3		equ  012h
+    8/  2 : =13H                        DLY_REG4		equ  013h
+    9/  2 :                             
+   10/  2 :                             
+   11/  2 : =14H                        TEMP1		equ  014h
+   12/  2 : =15H                        TEMP2		equ  015h
+   13/  2 : =16H                        TEMP3		equ  016h
+   14/  2 :                             
+   15/  2 : =20H                        DISPVAL1		equ  020h
+   16/  2 : =21H                        DISPVAL2		equ  021h
+   17/  2 : =22H                        DISPVAL3		equ  022h
+   18/  2 :                             
+   19/  2 : =30H                        CNT1		equ	030h
+   20/  2 :                             
+   21/  2 : =17H                        SUBTMP1		equ	017h	; sub_rt
+   22/  2 :                             
+   23/  2 : =18H                        SUBARG1L	equ	018h
+   24/  2 : =19H                        SUBARG1H	equ	019h
+   25/  2 : =1AH                        SUBARG3L	equ	01Ah
+   26/  2 : =1BH                        SUBARG3H	equ	01Bh
+   27/  2 :                             
+   28/  2 : =1CH                        DIVARG1L		equ  01Ch
+   29/  2 : =1DH                        DIVARG1H	equ	01Dh
+   30/  2 : =1EH                        DIVRET_L		equ	01Eh
+   31/  2 : =1FH                        DIVRET_H		equ	01Fh
+   32/  2 : =23H                        DIVMOD_L	equ	023h
+   33/  2 : =24H                        DIVMOD_H	equ	024h
+   34/  2 : =25H                        DIVARG2L		equ  025h
+   35/  2 :                             
+   36/ 40 :                             	org 40h
+   37/ 40 :                             init:
+   38/ 40 :                             	; Register clear
+   39/ 40 : 10                          	LAI	0
+   40/ 41 : 4F 00                       	LDEI	0
+   41/ 43 : 4E 00                       	LHLI	0
+   42/ 45 :                             
+   43/ 45 :                             	; P5_0 = #CS, P6_0 = #EOC. Others = N.C.
+   44/ 45 : 10                          	LAI	0
+   45/ 46 : 3F E4                       	OP	4
+   46/ 48 : 3F E5                       	OP	5
+   47/ 4A : 3F E6                       	OP	6
+   48/ 4C :                             
+   49/ 4C : 3F E0                       	OP	0	; ADC port
+   50/ 4E :                             
+   51/ 4E :                             	; LED port
+   52/ 4E : 1A                          	LAI	0Ah
+   53/ 4F : 73                          	OP3
+   54/ 50 :                             
+   55/ 50 :                             	; DIP Switch port
+   56/ 50 : 3F C1                       	IP	1
+   57/ 52 :                             	
+   58/ 52 :                             	; Display LED port
+   59/ 52 : 10                          	LAI	0
+   60/ 53 : 3F E2                       	OP	2
+ AS V1.42 Beta [Bld 293] - Source File board_divtest.asm - Page 2 - 3/11/2026 17:21:59
+
+
+   61/ 55 :                             
+   62/ 55 : 11                          	LAI	1
+   63/ 56 : 3F E7                       	OP	7
+   64/ 58 :                             main:  
+   65/ 58 : 10                          	LAI 0
+   66/ 59 : 4F 00                       	LDEI	0	; DE <- 0x00  
+   67/ 5B :                             
+   68/ 5B : 78                          	RC			; Reset carry
+   69/ 5C :                             
+   70/ 5C :                             	; Set stack pointer SP = 0xDE
+   71/ 5C : 4E 14                       	LHLI	TEMP1	; Set HL = TEMP1 addr
+   72/ 5E : 1F                          	LAI	0Fh
+   73/ 5F : 57                          	ST			; (TEMP1) <- 0xF
+   74/ 60 : 1D                          	LAI	0Dh
+   75/ 61 : 3F 31                       	TAMSP		; Stack pointer <- A & (HL)[3:1] & 0 = 0xDE
+   76/ 63 :                             
+   77/ 63 :                             	; Clear RAM val TEMP1, TEMP2, TEMP3
+   78/ 63 : 10                          	LAI	0
+   79/ 64 : 39 14                       	XADR	(TEMP1)
+   80/ 66 : 10                          	LAI	0
+   81/ 67 : 39 15                       	XADR	(TEMP2)
+   82/ 69 : 10                          	LAI	0
+   83/ 6A : 39 16                       	XADR	(TEMP3)
+   84/ 6C : 10                          	LAI	0
+   85/ 6D : 39 17                       	XADR	(SUBTMP1)
+   86/ 6F :                             
+   87/ 6F :                             	; Clear RAM val
+   88/ 6F : 10                          	LAI	0
+   89/ 70 : 39 18                       	XADR	(SUBARG1L)
+   90/ 72 : 10                          	LAI	0
+   91/ 73 : 39 19                       	XADR	(SUBARG1H)
+   92/ 75 : 10                          	LAI	0
+   93/ 76 : 39 1A                       	XADR	(SUBARG3L)
+   94/ 78 : 10                          	LAI	0
+   95/ 79 : 39 1B                       	XADR	(SUBARG3H)
+   96/ 7B :                             
+   97/ 7B :                             
+   98/ 7B :                             	
+   99/ 7B :                             	; Clear RAM val DISPVAL1, DISPVAL2, DISPVAL3
+  100/ 7B :                             	; display '-'
+  101/ 7B : 1D                          	LAI	0Dh
+  102/ 7C : 39 20                       	XADR	(DISPVAL1)
+  103/ 7E : 1D                          	LAI	0Dh
+  104/ 7F : 39 21                       	XADR	(DISPVAL2)
+  105/ 81 : 1D                          	LAI	0Dh
+  106/ 82 : 39 22                       	XADR	(DISPVAL3)
+  107/ 84 :                             
+  108/ 84 :                             	; Clear RAM val CNT1
+  109/ 84 : 11                          	LAI	01h
+  110/ 85 : 39 30                       	XADR	(CNT1)
+  111/ 87 :                             
+  112/ 87 : 31 4A                       	call	disp_num_to_led_100
+  113/ 89 :                             
+  114/ 89 :                             	; Set initial LED
+  115/ 89 : 38 30                       	LADR	(CNT1)
+  116/ 8B : 73                          	OP3
+  117/ 8C :                             
+  118/ 8C :                             loop:
+  119/ 8C :                             	; LED count-up
+  120/ 8C : 3D 30                       	IDRS		(CNT1)	; +1
+ AS V1.42 Beta [Bld 293] - Source File board_divtest.asm - Page 3 - 3/11/2026 17:21:59
+
+
+  121/ 8E : 00                          	nop				; skip if overflow
+  122/ 8F :                             
+  123/ 8F : 38 30                       	LADR	(CNT1)	; A <- ++i
+  124/ 91 :                              ;   	OP3         			; P3 <- A
+  125/ 91 :                             
+  126/ 91 :                             	; substract test (const - SW)
+  127/ 91 :                             
+  128/ 91 :                             	; E <- Port1 (SW)
+  129/ 91 : 71                          	IP1	; A <- Port1 
+  130/ 92 : 3E 8A                       	TAE	; E <- A
+  131/ 94 :                             ;
+  132/ 94 :                             ;	LHLI	DISPVAL1		; set HL addr
+  133/ 94 :                             ;	ST				; (HL) <- A = E = SW
+  134/ 94 :                             ;
+  135/ 94 :                             ;	LAI	00h	; A <- 0x9
+  136/ 94 :                             ;;	TAD		; D <- A = 0x9
+  137/ 94 :                             ;	LHLI	DISPVAL2		; set HL addr
+  138/ 94 :                             ;	ST				; (HL) = (DISPVAL2) <- D = 0x09
+  139/ 94 :                             ;	
+  140/ 94 :                             ;	call sub_rt	; A <- A - D
+  141/ 94 :                             ;	
+  142/ 94 :                             ;	LHLI	DISPVAL3		; set HL addr
+  143/ 94 :                             ;	ST				; (HL) = (DISPVAL3) <- A = 0x9 - E
+  144/ 94 :                             
+  145/ 94 :                             
+  146/ 94 :                             
+  147/ 94 : 4E 25                       	LHLI	DIVARG2L
+  148/ 96 : 57                          	ST
+  149/ 97 :                             	
+  150/ 97 : 1F                          	LAI	0Fh
+  151/ 98 : 39 1C                       	XADR	(DIVARG1L)
+  152/ 9A :                             
+  153/ 9A : 1F                          	LAI	0Fh
+  154/ 9B : 39 1D                       	XADR	(DIVARG1H)
+  155/ 9D :                             
+  156/ 9D :                             
+  157/ 9D : 31 07                       	call	div84_rt
+  158/ 9F :                             
+  159/ 9F : 4E 22                       	LHLI	DISPVAL3
+  160/ A1 : 38 1E                       	LADR	(DIVRET_L)
+  161/ A3 : 57                          	ST
+  162/ A4 :                             
+  163/ A4 : 4E 21                       	LHLI	DISPVAL2
+  164/ A6 : 38 1F                       	LADR	(DIVRET_H)
+  165/ A8 : 57                          	ST
+  166/ A9 :                             
+  167/ A9 : 4E 20                       	LHLI	DISPVAL1		; set HL addr
+  168/ AB : 38 23                       	LADR	(DIVMOD_L)
+  169/ AD : 57                          	ST
+  170/ AE :                             
+  171/ AE : 16                          	LAI	06h
+  172/ AF : 5A                          	SKC
+  173/ B0 : 1A                          	LAI	0Ah
+  174/ B1 : 73                          	OP3
+  175/ B2 :                             
+  176/ B2 : 31 4A                       	call	disp_num_to_led_100
+  177/ B4 :                             
+  178/ B4 : 31 84                           call delay
+  179/ B6 : 31 84                           call delay
+  180/ B8 : 31 84                           call delay
+ AS V1.42 Beta [Bld 293] - Source File board_divtest.asm - Page 4 - 3/11/2026 17:21:59
+
+
+  181/ BA : 31 84                           call delay
+  182/ BC : 31 84                           call delay
+  183/ BE : 31 84                           call delay
+  184/ C0 : 31 84                           call delay
+  185/ C2 : 31 84                           call delay
+  186/ C4 : 31 84                           call delay
+  187/ C6 : 31 84                           call delay
+  188/ C8 :                             
+  189/ C8 : 20 8C                           JMP  loop
+  190/ CA :                             
+  191/ CA :                             ; A <- D - E
+  192/ CA :                             sub_4D_4E_rt:
+  193/ CA :                             	; 2's complement
+  194/ CA : 3E 8B                       	TEA		; A <- E
+  195/ CC : 7F                          	CMA		; ~A
+  196/ CD :                             
+  197/ CD : 4E 17                       	LHLI	SUBTMP1	; set HL SUBTMP1
+  198/ CF : 57                          	ST		; (HL) <- A = (~E)
+  199/ D0 :                             
+  200/ D0 : 3E AB                       	TDA		; A <- D
+  201/ D2 :                             
+  202/ D2 : 79                          	SC		; Set carry	
+  203/ D3 :                             
+  204/ D3 : 7C                          	ACSC	; A <- A + (HL) + C = D + (~E) + 1. skip if carry
+  205/ D4 : 97                          	JCP	sub_4D_4E_borrow		; skip if overflow
+  206/ D5 :                             
+  207/ D5 :                             sub_4D_4E_noborrow:
+  208/ D5 : 78                          	RC	; Carry = 0
+  209/ D6 : 53                          	RT
+  210/ D7 :                             
+  211/ D7 :                             sub_4D_4E_borrow:
+  212/ D7 : 79                          	SC	; Carry = 1
+  213/ D8 : 53                          	RT
+  214/ D9 :                             
+  215/ D9 :                             ; SUBARG3H & SUBARG3L = SUBARG1H & SUBARG1L - E
+  216/ D9 :                             sub84_rt:
+  217/ D9 :                             	; init
+  218/ D9 : 10                          	LAI	0
+  219/ DA : 4E 1A                       	LHLI		SUBARG3L
+  220/ DC : 57                          	ST
+  221/ DD : 4E 1B                       	LHLI		SUBARG3H
+  222/ DF : 57                          	ST
+  223/ E0 :                             
+  224/ E0 :                             	; load 
+  225/ E0 : 38 18                       	LADR	(SUBARG1L)
+  226/ E2 : 3E AA                       	TAD
+  227/ E4 :                             
+  228/ E4 :                             ; Debug
+  229/ E4 :                             
+  230/ E4 :                             	; A <- D - E
+  231/ E4 : 30 CA                       	call	sub_4D_4E_rt
+  232/ E6 :                             	
+  233/ E6 :                             	; (SUBARG3L)	<- A = D - "
+  234/ E6 : 4E 1A                       	LHLI		SUBARG3L
+  235/ E8 : 57                          	ST			
+  236/ E9 :                             
+  237/ E9 :                             	; if Carry	: mid-borrow
+  238/ E9 : 5A                          	SKC
+  239/ EA : 20 EE                       	JMP	sub84_nomidborrow	; skip if C = 1
+  240/ EC : 20 F5                       	JMP	sub84_midborrow
+ AS V1.42 Beta [Bld 293] - Source File board_divtest.asm - Page 5 - 3/11/2026 17:21:59
+
+
+  241/ EE :                             
+  242/ EE :                             	; if not Carry : no mid-borrow
+  243/ EE :                             sub84_nomidborrow:
+  244/ EE :                             	; (SUBARG3H) <- (SUBARG1H)
+  245/ EE : 38 19                       	LADR	(SUBARG1H)
+  246/ F0 : 4E 1B                       	LHLI		SUBARG3H
+  247/ F2 : 57                          	ST
+  248/ F3 :                             
+  249/ F3 : 78                          	RC
+  250/ F4 :                             
+  251/ F4 : 53                          	RT	
+  252/ F5 :                             
+  253/ F5 :                             sub84_midborrow:
+  254/ F5 :                             	; (SUBARG1H) <- (SUBARG1H) - 1
+  255/ F5 : 3C 19                       	DDRS	(SUBARG1H)		
+  256/ F7 : 21 00                       	JMP	sub84_noborrow; if not borrow
+  257/ F9 :                             
+  258/ F9 :                             sub84_borrow:
+  259/ F9 :                             	; (SUBARG3H) <- (SUBARG1H)
+  260/ F9 : 38 19                       	LADR	(SUBARG1H)
+  261/ FB : 4E 1B                       	LHLI		SUBARG3H
+  262/ FD : 57                          	ST
+  263/ FE :                             	
+  264/ FE :                             	; Set carry
+  265/ FE : 79                          	SC		
+  266/ FF :                             
+  267/ FF : 53                          	RT
+  268/100 :                             
+  269/100 :                             sub84_noborrow:
+  270/100 :                             	; (SUBARG3H) <- (SUBARG1H)
+  271/100 : 38 19                       	LADR	(SUBARG1H)
+  272/102 : 4E 1B                       	LHLI		SUBARG3H
+  273/104 : 57                          	ST					
+  274/105 :                             
+  275/105 :                             	; Reset carry
+  276/105 : 78                          	RC		
+  277/106 :                             
+  278/106 : 53                          	RT
+  279/107 :                             
+  280/107 :                             div84_rt:
+  281/107 : 10                          	LAI	0
+  282/108 : 4E 1E                       	LHLI		DIVRET_L
+  283/10A : 57                          	ST
+  284/10B : 4E 1F                       	LHLI		DIVRET_H
+  285/10D : 57                          	ST
+  286/10E : 4E 23                       	LHLI		DIVMOD_L
+  287/110 : 57                          	ST
+  288/111 : 4E 24                       	LHLI		DIVMOD_H
+  289/113 : 57                          	ST
+  290/114 :                             
+  291/114 : 38 1C                       	LADR	(DIVARG1L)
+  292/116 : 4E 18                       	LHLI		SUBARG1L
+  293/118 : 57                          	ST
+  294/119 :                             
+  295/119 : 38 1D                       	LADR	(DIVARG1H)
+  296/11B : 4E 19                       	LHLI		SUBARG1H
+  297/11D : 57                          	ST
+  298/11E :                             
+  299/11E :                             	; if 2L = 0 then RT
+  300/11E : 38 25                       	LADR	(DIVARG2L)
+ AS V1.42 Beta [Bld 293] - Source File board_divtest.asm - Page 6 - 3/11/2026 17:21:59
+
+
+  301/120 : 3E 8A                       	TAE
+  302/122 :                             	
+  303/122 : 3F 60                       	SKAEI	0
+  304/124 : 21 27                       	JMP	div84_loop		; skip if A = 0
+  305/126 :                             
+  306/126 :                             div84_zerodiv:
+  307/126 : 53                          	RT
+  308/127 :                             
+  309/127 :                             div84_loop:
+  310/127 : 30 D9                       	call	sub84_rt
+  311/129 :                             
+  312/129 : 5A                          	SKC	
+  313/12A : 21 37                       	JMP	div84_noborrow
+  314/12C :                             
+  315/12C :                             div84_borrow:
+  316/12C : 38 18                       	LADR	(SUBARG1L)
+  317/12E : 4E 23                       	LHLI		DIVMOD_L
+  318/130 : 57                          	ST
+  319/131 :                             
+  320/131 : 38 19                       	LADR	(SUBARG1H)
+  321/133 : 4E 24                       	LHLI		DIVMOD_H
+  322/135 : 57                          	ST
+  323/136 :                             
+  324/136 : 53                          	RT
+  325/137 :                             
+  326/137 :                             div84_noborrow:
+  327/137 : 38 1B                       	LADR	(SUBARG3H)
+  328/139 : 4E 19                       	LHLI		SUBARG1H
+  329/13B : 57                          	ST
+  330/13C :                             
+  331/13C : 38 1A                       	LADR	(SUBARG3L)
+  332/13E : 4E 18                       	LHLI		SUBARG1L
+  333/140 : 57                          	ST
+  334/141 :                             	
+  335/141 : 3D 1E                       	IDRS		(DIVRET_L)
+  336/143 : 21 48                       	JMP	div84_nocarry		; skip if overflow
+  337/145 :                             
+  338/145 :                             div84_carry:
+  339/145 : 3D 1F                       	IDRS		(DIVRET_H)	
+  340/147 : 00                          	nop
+  341/148 :                             div84_nocarry:
+  342/148 : 21 27                       	JMP	div84_loop
+  343/14A :                             	
+  344/14A :                             
+  345/14A :                             disp_num_to_led_100:
+  346/14A :                             
+  347/14A :                             	; Latch on-off
+  348/14A :                             	; Left LED Latch = en
+  349/14A : 1E                          	LAI	0Eh
+  350/14B : 3F E2                       	OP	2
+  351/14D :                             
+  352/14D :                             	; Dispval1 -> 100 
+  353/14D : 38 20                       	LADR	(DISPVAL1)
+  354/14F : 3F E7                       	OP	7
+  355/151 :                             
+  356/151 : 1F                          	LAI   0Fh
+  357/152 : 3F E2                       	OP	2
+  358/154 :                             
+  359/154 : 1D                          	LAI   0Dh
+  360/155 : 3F E2                       	OP	2
+ AS V1.42 Beta [Bld 293] - Source File board_divtest.asm - Page 7 - 3/11/2026 17:21:59
+
+
+  361/157 :                             
+  362/157 : 38 21                       	LADR	(DISPVAL2)
+  363/159 : 3F E7                       	OP	7
+  364/15B :                             
+  365/15B : 1F                          	LAI   0Fh
+  366/15C : 3F E2                       	OP	2
+  367/15E :                             
+  368/15E : 1B                          	LAI	0Bh
+  369/15F : 3F E2                       	OP	2
+  370/161 :                             
+  371/161 : 38 22                       	LADR	(DISPVAL3)
+  372/163 : 3F E7                       	OP	7
+  373/165 :                             
+  374/165 : 1F                          	LAI 0Fh
+  375/166 : 3F E2                       	OP	2
+  376/168 :                             
+  377/168 : 53                          	RT
+  378/169 :                             
+  379/169 :                             
+  380/169 :                             	
+  381/169 :                             delay2:
+  382/169 : 4B                          	XAE	; A -> E
+  383/16A : 3E 8E                       	PSHDE
+  384/16C :                             
+  385/16C :                             dly_init_ram:
+  386/16C : 10                          	LAI	0
+  387/16D : 39 13                       	XADR	(DLY_REG4)
+  388/16F :                             dly_loop4:
+  389/16F : 10                          	LAI	0
+  390/170 : 39 12                       	XADR	(DLY_REG3)
+  391/172 :                             dly_loop3:
+  392/172 : 10                          	LAI	0
+  393/173 : 39 11                       	XADR	(DLY_REG2)
+  394/175 :                             dly_loop2:
+  395/175 : 10                          	LAI	0				; 1 cycle 
+  396/176 : 39 10                       	XADR	(DLY_REG1)	; 2 cycles
+  397/178 :                             dly_loop1:
+  398/178 : 3D 10                       	IDRS		(DLY_REG1)	; 2 cycles x 16
+  399/17A : 21 78                       	JMP		dly_loop1		; 2 cycles x 15
+  400/17C : 3D 11                       	IDRS		(DLY_REG2)
+  401/17E : 21 75                       	JMP		dly_loop2
+  402/180 :                             ;	IDRS		(DLY_REG3)
+  403/180 :                             ;	JMP		dly_loop3
+  404/180 :                             ;	IDRS		(DLY_REG4)
+  405/180 :                             ;	JMP		dly_loop4
+  406/180 :                             
+  407/180 : 3E 8F                       	POPDE
+  408/182 : 4B                          	XAE	; E -> A
+  409/183 :                             
+  410/183 : 53                          	RT
+  411/184 :                             
+  412/184 : 3E AA 3E AA 3E AA 3E AA 3E  delay:  db 500 dup(03eh,0aah) ;TAD 2 M-cycles
+      18D : AA 3E AA 3E AA 3E AA 3E AA
+      196 : 3E AA 3E AA 3E AA 3E AA 3E
+      19F : AA 3E AA 3E AA 3E AA 3E AA
+      1A8 : 3E AA 3E AA 3E AA 3E AA 3E
+      1B1 : AA 3E AA 3E AA 3E AA 3E AA
+      1BA : 3E AA 3E AA 3E AA 3E AA 3E
+      1C3 : AA 3E AA 3E AA 3E AA 3E AA
+      1CC : 3E AA 3E AA 3E AA 3E AA 3E
+ AS V1.42 Beta [Bld 293] - Source File board_divtest.asm - Page 8 - 3/11/2026 17:21:59
+
+
+      1D5 : AA 3E AA 3E AA 3E AA 3E AA
+      1DE : 3E AA 3E AA 3E AA 3E AA 3E
+      1E7 : AA 3E AA 3E AA 3E AA 3E AA
+      1F0 : 3E AA 3E AA 3E AA 3E AA 3E
+      1F9 : AA 3E AA 3E AA 3E AA 3E AA
+      202 : 3E AA 3E AA 3E AA 3E AA 3E
+      20B : AA 3E AA 3E AA 3E AA 3E AA
+      214 : 3E AA 3E AA 3E AA 3E AA 3E
+      21D : AA 3E AA 3E AA 3E AA 3E AA
+      226 : 3E AA 3E AA 3E AA 3E AA 3E
+      22F : AA 3E AA 3E AA 3E AA 3E AA
+      238 : 3E AA 3E AA 3E AA 3E AA 3E
+      241 : AA 3E AA 3E AA 3E AA 3E AA
+      24A : 3E AA 3E AA 3E AA 3E AA 3E
+      253 : AA 3E AA 3E AA 3E AA 3E AA
+      25C : 3E AA 3E AA 3E AA 3E AA 3E
+      265 : AA 3E AA 3E AA 3E AA 3E AA
+      26E : 3E AA 3E AA 3E AA 3E AA 3E
+      277 : AA 3E AA 3E AA 3E AA 3E AA
+      280 : 3E AA 3E AA 3E AA 3E AA 3E
+      289 : AA 3E AA 3E AA 3E AA 3E AA
+      292 : 3E AA 3E AA 3E AA 3E AA 3E
+      29B : AA 3E AA 3E AA 3E AA 3E AA
+      2A4 : 3E AA 3E AA 3E AA 3E AA 3E
+      2AD : AA 3E AA 3E AA 3E AA 3E AA
+      2B6 : 3E AA 3E AA 3E AA 3E AA 3E
+      2BF : AA 3E AA 3E AA 3E AA 3E AA
+      2C8 : 3E AA 3E AA 3E AA 3E AA 3E
+      2D1 : AA 3E AA 3E AA 3E AA 3E AA
+      2DA : 3E AA 3E AA 3E AA 3E AA 3E
+      2E3 : AA 3E AA 3E AA 3E AA 3E AA
+      2EC : 3E AA 3E AA 3E AA 3E AA 3E
+      2F5 : AA 3E AA 3E AA 3E AA 3E AA
+      2FE : 3E AA 3E AA 3E AA 3E AA 3E
+      307 : AA 3E AA 3E AA 3E AA 3E AA
+      310 : 3E AA 3E AA 3E AA 3E AA 3E
+      319 : AA 3E AA 3E AA 3E AA 3E AA
+      322 : 3E AA 3E AA 3E AA 3E AA 3E
+      32B : AA 3E AA 3E AA 3E AA 3E AA
+      334 : 3E AA 3E AA 3E AA 3E AA 3E
+      33D : AA 3E AA 3E AA 3E AA 3E AA
+      346 : 3E AA 3E AA 3E AA 3E AA 3E
+      34F : AA 3E AA 3E AA 3E AA 3E AA
+      358 : 3E AA 3E AA 3E AA 3E AA 3E
+      361 : AA 3E AA 3E AA 3E AA 3E AA
+      36A : 3E AA 3E AA 3E AA 3E AA 3E
+      373 : AA 3E AA 3E AA 3E AA 3E AA
+      37C : 3E AA 3E AA 3E AA 3E AA 3E
+      385 : AA 3E AA 3E AA 3E AA 3E AA
+      38E : 3E AA 3E AA 3E AA 3E AA 3E
+      397 : AA 3E AA 3E AA 3E AA 3E AA
+      3A0 : 3E AA 3E AA 3E AA 3E AA 3E
+      3A9 : AA 3E AA 3E AA 3E AA 3E AA
+      3B2 : 3E AA 3E AA 3E AA 3E AA 3E
+      3BB : AA 3E AA 3E AA 3E AA 3E AA
+      3C4 : 3E AA 3E AA 3E AA 3E AA 3E
+      3CD : AA 3E AA 3E AA 3E AA 3E AA
+      3D6 : 3E AA 3E AA 3E AA 3E AA 3E
+      3DF : AA 3E AA 3E AA 3E AA 3E AA
+      3E8 : 3E AA 3E AA 3E AA 3E AA 3E
+ AS V1.42 Beta [Bld 293] - Source File board_divtest.asm - Page 9 - 3/11/2026 17:21:59
+
+
+      3F1 : AA 3E AA 3E AA 3E AA 3E AA
+      3FA : 3E AA 3E AA 3E AA 3E AA 3E
+      403 : AA 3E AA 3E AA 3E AA 3E AA
+      40C : 3E AA 3E AA 3E AA 3E AA 3E
+      415 : AA 3E AA 3E AA 3E AA 3E AA
+      41E : 3E AA 3E AA 3E AA 3E AA 3E
+      427 : AA 3E AA 3E AA 3E AA 3E AA
+      430 : 3E AA 3E AA 3E AA 3E AA 3E
+      439 : AA 3E AA 3E AA 3E AA 3E AA
+      442 : 3E AA 3E AA 3E AA 3E AA 3E
+      44B : AA 3E AA 3E AA 3E AA 3E AA
+      454 : 3E AA 3E AA 3E AA 3E AA 3E
+      45D : AA 3E AA 3E AA 3E AA 3E AA
+      466 : 3E AA 3E AA 3E AA 3E AA 3E
+      46F : AA 3E AA 3E AA 3E AA 3E AA
+      478 : 3E AA 3E AA 3E AA 3E AA 3E
+      481 : AA 3E AA 3E AA 3E AA 3E AA
+      48A : 3E AA 3E AA 3E AA 3E AA 3E
+      493 : AA 3E AA 3E AA 3E AA 3E AA
+      49C : 3E AA 3E AA 3E AA 3E AA 3E
+      4A5 : AA 3E AA 3E AA 3E AA 3E AA
+      4AE : 3E AA 3E AA 3E AA 3E AA 3E
+      4B7 : AA 3E AA 3E AA 3E AA 3E AA
+      4C0 : 3E AA 3E AA 3E AA 3E AA 3E
+      4C9 : AA 3E AA 3E AA 3E AA 3E AA
+      4D2 : 3E AA 3E AA 3E AA 3E AA 3E
+      4DB : AA 3E AA 3E AA 3E AA 3E AA
+      4E4 : 3E AA 3E AA 3E AA 3E AA 3E
+      4ED : AA 3E AA 3E AA 3E AA 3E AA
+      4F6 : 3E AA 3E AA 3E AA 3E AA 3E
+      4FF : AA 3E AA 3E AA 3E AA 3E AA
+      508 : 3E AA 3E AA 3E AA 3E AA 3E
+      511 : AA 3E AA 3E AA 3E AA 3E AA
+      51A : 3E AA 3E AA 3E AA 3E AA 3E
+      523 : AA 3E AA 3E AA 3E AA 3E AA
+      52C : 3E AA 3E AA 3E AA 3E AA 3E
+      535 : AA 3E AA 3E AA 3E AA 3E AA
+      53E : 3E AA 3E AA 3E AA 3E AA 3E
+      547 : AA 3E AA 3E AA 3E AA 3E AA
+      550 : 3E AA 3E AA 3E AA 3E AA 3E
+      559 : AA 3E AA 3E AA 3E AA 3E AA
+      562 : 3E AA 3E AA 3E AA 3E AA 3E
+      56B : AA                        
+  413/56C : 3E AA 3E AA 3E AA 3E AA 3E          db 425 dup(03eh,0aah) ;TAD 2 M-cycles
+      575 : AA 3E AA 3E AA 3E AA 3E AA
+      57E : 3E AA 3E AA 3E AA 3E AA 3E
+      587 : AA 3E AA 3E AA 3E AA 3E AA
+      590 : 3E AA 3E AA 3E AA 3E AA 3E
+      599 : AA 3E AA 3E AA 3E AA 3E AA
+      5A2 : 3E AA 3E AA 3E AA 3E AA 3E
+      5AB : AA 3E AA 3E AA 3E AA 3E AA
+      5B4 : 3E AA 3E AA 3E AA 3E AA 3E
+      5BD : AA 3E AA 3E AA 3E AA 3E AA
+      5C6 : 3E AA 3E AA 3E AA 3E AA 3E
+      5CF : AA 3E AA 3E AA 3E AA 3E AA
+      5D8 : 3E AA 3E AA 3E AA 3E AA 3E
+      5E1 : AA 3E AA 3E AA 3E AA 3E AA
+      5EA : 3E AA 3E AA 3E AA 3E AA 3E
+      5F3 : AA 3E AA 3E AA 3E AA 3E AA
+      5FC : 3E AA 3E AA 3E AA 3E AA 3E
+ AS V1.42 Beta [Bld 293] - Source File board_divtest.asm - Page 10 - 3/11/2026 17:21:59
+
+
+      605 : AA 3E AA 3E AA 3E AA 3E AA
+      60E : 3E AA 3E AA 3E AA 3E AA 3E
+      617 : AA 3E AA 3E AA 3E AA 3E AA
+      620 : 3E AA 3E AA 3E AA 3E AA 3E
+      629 : AA 3E AA 3E AA 3E AA 3E AA
+      632 : 3E AA 3E AA 3E AA 3E AA 3E
+      63B : AA 3E AA 3E AA 3E AA 3E AA
+      644 : 3E AA 3E AA 3E AA 3E AA 3E
+      64D : AA 3E AA 3E AA 3E AA 3E AA
+      656 : 3E AA 3E AA 3E AA 3E AA 3E
+      65F : AA 3E AA 3E AA 3E AA 3E AA
+      668 : 3E AA 3E AA 3E AA 3E AA 3E
+      671 : AA 3E AA 3E AA 3E AA 3E AA
+      67A : 3E AA 3E AA 3E AA 3E AA 3E
+      683 : AA 3E AA 3E AA 3E AA 3E AA
+      68C : 3E AA 3E AA 3E AA 3E AA 3E
+      695 : AA 3E AA 3E AA 3E AA 3E AA
+      69E : 3E AA 3E AA 3E AA 3E AA 3E
+      6A7 : AA 3E AA 3E AA 3E AA 3E AA
+      6B0 : 3E AA 3E AA 3E AA 3E AA 3E
+      6B9 : AA 3E AA 3E AA 3E AA 3E AA
+      6C2 : 3E AA 3E AA 3E AA 3E AA 3E
+      6CB : AA 3E AA 3E AA 3E AA 3E AA
+      6D4 : 3E AA 3E AA 3E AA 3E AA 3E
+      6DD : AA 3E AA 3E AA 3E AA 3E AA
+      6E6 : 3E AA 3E AA 3E AA 3E AA 3E
+      6EF : AA 3E AA 3E AA 3E AA 3E AA
+      6F8 : 3E AA 3E AA 3E AA 3E AA 3E
+      701 : AA 3E AA 3E AA 3E AA 3E AA
+      70A : 3E AA 3E AA 3E AA 3E AA 3E
+      713 : AA 3E AA 3E AA 3E AA 3E AA
+      71C : 3E AA 3E AA 3E AA 3E AA 3E
+      725 : AA 3E AA 3E AA 3E AA 3E AA
+      72E : 3E AA 3E AA 3E AA 3E AA 3E
+      737 : AA 3E AA 3E AA 3E AA 3E AA
+      740 : 3E AA 3E AA 3E AA 3E AA 3E
+      749 : AA 3E AA 3E AA 3E AA 3E AA
+      752 : 3E AA 3E AA 3E AA 3E AA 3E
+      75B : AA 3E AA 3E AA 3E AA 3E AA
+      764 : 3E AA 3E AA 3E AA 3E AA 3E
+      76D : AA 3E AA 3E AA 3E AA 3E AA
+      776 : 3E AA 3E AA 3E AA 3E AA 3E
+      77F : AA 3E AA 3E AA 3E AA 3E AA
+      788 : 3E AA 3E AA 3E AA 3E AA 3E
+      791 : AA 3E AA 3E AA 3E AA 3E AA
+      79A : 3E AA 3E AA 3E AA 3E AA 3E
+      7A3 : AA 3E AA 3E AA 3E AA 3E AA
+      7AC : 3E AA 3E AA 3E AA 3E AA 3E
+      7B5 : AA 3E AA 3E AA 3E AA 3E AA
+      7BE : 3E AA 3E AA 3E AA 3E AA 3E
+      7C7 : AA 3E AA 3E AA 3E AA 3E AA
+      7D0 : 3E AA 3E AA 3E AA 3E AA 3E
+      7D9 : AA 3E AA 3E AA 3E AA 3E AA
+      7E2 : 3E AA 3E AA 3E AA 3E AA 3E
+      7EB : AA 3E AA 3E AA 3E AA 3E AA
+      7F4 : 3E AA 3E AA 3E AA 3E AA 3E
+      7FD : AA 3E AA 3E AA 3E AA 3E AA
+      806 : 3E AA 3E AA 3E AA 3E AA 3E
+      80F : AA 3E AA 3E AA 3E AA 3E AA
+      818 : 3E AA 3E AA 3E AA 3E AA 3E
+ AS V1.42 Beta [Bld 293] - Source File board_divtest.asm - Page 11 - 3/11/2026 17:21:59
+
+
+      821 : AA 3E AA 3E AA 3E AA 3E AA
+      82A : 3E AA 3E AA 3E AA 3E AA 3E
+      833 : AA 3E AA 3E AA 3E AA 3E AA
+      83C : 3E AA 3E AA 3E AA 3E AA 3E
+      845 : AA 3E AA 3E AA 3E AA 3E AA
+      84E : 3E AA 3E AA 3E AA 3E AA 3E
+      857 : AA 3E AA 3E AA 3E AA 3E AA
+      860 : 3E AA 3E AA 3E AA 3E AA 3E
+      869 : AA 3E AA 3E AA 3E AA 3E AA
+      872 : 3E AA 3E AA 3E AA 3E AA 3E
+      87B : AA 3E AA 3E AA 3E AA 3E AA
+      884 : 3E AA 3E AA 3E AA 3E AA 3E
+      88D : AA 3E AA 3E AA 3E AA 3E AA
+      896 : 3E AA 3E AA 3E AA 3E AA 3E
+      89F : AA 3E AA 3E AA 3E AA 3E AA
+      8A8 : 3E AA 3E AA 3E AA 3E AA 3E
+      8B1 : AA 3E AA 3E AA 3E AA 3E AA
+      8BA : 3E AA 3E AA               
+  414/8BE : 53                                  rt
+  415/8BF :                             
+  416/8BF :                                     end
+ AS V1.42 Beta [Bld 293] - Source File board_divtest.asm - Page 12 - 3/11/2026 17:21:59
+
+
+  Symbol Table (* = unused):
+  --------------------------
+
+*ARCHITECTURE :                                        "i386-unknown-win32" - |
+*CASESENSITIVE :                  0 - |  CNT1 :                          30 - |
+*CONSTPI :        3.141592653589793 - | *DATE :                 "3/11/2026" - |
+ DELAY :                        184 C | *DELAY2 :                       169 C |
+ DISPVAL1 :                      20 - |  DISPVAL2 :                      21 - |
+ DISPVAL3 :                      22 - |  DISP_NUM_TO_LED_100 :          14A C |
+*DIV84_BORROW :                 12C C | *DIV84_CARRY :                  145 C |
+ DIV84_LOOP :                   127 C |  DIV84_NOBORROW :               137 C |
+ DIV84_NOCARRY :                148 C |  DIV84_RT :                     107 C |
+*DIV84_ZERODIV :                126 C |  DIVARG1H :                      1D - |
+ DIVARG1L :                      1C - |  DIVARG2L :                      25 - |
+ DIVMOD_H :                      24 - |  DIVMOD_L :                      23 - |
+ DIVRET_H :                      1F - |  DIVRET_L :                      1E - |
+*DLY_INIT_RAM :                 16C C |  DLY_LOOP1 :                    178 C |
+ DLY_LOOP2 :                    175 C | *DLY_LOOP3 :                    172 C |
+*DLY_LOOP4 :                    16F C |  DLY_REG1 :                      10 - |
+ DLY_REG2 :                      11 - |  DLY_REG3 :                      12 - |
+ DLY_REG4 :                      13 - | *FALSE :                          0 - |
+*FLOATMAX :      1.797693134866E308 - | *HAS64 :                          1 - |
+ INIT :                          40 C | *LISTON :                         1 - |
+ LOOP :                          8C C | *MACEXP :                         7 - |
+*MAIN :                          58 C | *MOMCPU :                      7508 - |
+*MOMCPUNAME :                "7508" - | *NESTMAX :                      100 - |
+*RELAXED :                        0 - | *SUB84_BORROW :                 0F9 C |
+ SUB84_MIDBORROW :              0F5 C |  SUB84_NOBORROW :               100 C |
+ SUB84_NOMIDBORROW :            0EE C |  SUB84_RT :                     0D9 C |
+ SUBARG1H :                      19 - |  SUBARG1L :                      18 - |
+ SUBARG3H :                      1B - |  SUBARG3L :                      1A - |
+ SUBTMP1 :                       17 - |  SUB_4D_4E_BORROW :             0D7 C |
+*SUB_4D_4E_NOBORROW :           0D5 C |  SUB_4D_4E_RT :                 0CA C |
+ TEMP1 :                         14 - |  TEMP2 :                         15 - |
+ TEMP3 :                         16 - | *TIME :                  "17:21:59" - |
+*TRUE :                           1 - | *VERSION :                     142F - |
+
+     65 symbols
+     26 unused symbols
+
+ AS V1.42 Beta [Bld 293] - Source File board_divtest.asm - Page 13 - 3/11/2026 17:21:59
+
+
+  Code Pages:
+  ----------
+
+STANDARD (0 changed characters)
+
+1 code page
+ AS V1.42 Beta [Bld 293] - Source File board_divtest.asm - Page 14 - 3/11/2026 17:21:59
+
+
+  Space Used in CODE :
+  --------------------
+
+0-1                40-8BE             
+
+
+0.02 seconds assembly time
+
+    417 lines source file
+      2 passes
+      0 errors
+      0 warnings

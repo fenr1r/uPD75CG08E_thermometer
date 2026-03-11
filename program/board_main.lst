@@ -1,0 +1,570 @@
+ AS V1.42 Beta [Bld 293] - Source File board_main.asm - Page 1 - 3/11/2026 19:46:42
+
+
+    1/  0 :                                     cpu 7508
+    2/  0 :                                     org 0
+    3/  0 : 20 40                       	JMP	init
+    4/  2 :                             
+    5/  2 : =10H                        DLY_REG1		equ	010h
+    6/  2 : =11H                        DLY_REG2		equ  011h
+    7/  2 : =12H                        DLY_REG3		equ  012h
+    8/  2 : =13H                        DLY_REG4		equ  013h
+    9/  2 :                             
+   10/  2 :                             
+   11/  2 : =14H                        TEMP1		equ  014h
+   12/  2 : =15H                        TEMP2		equ  015h
+   13/  2 : =16H                        TEMP3		equ  016h
+   14/  2 :                             
+   15/  2 : =20H                        DISPVAL1		equ  020h
+   16/  2 : =21H                        DISPVAL2		equ  021h
+   17/  2 : =22H                        DISPVAL3		equ  022h
+   18/  2 :                             
+   19/  2 : =30H                        CNT1		equ	030h
+   20/  2 :                             
+   21/  2 : =17H                        SUBTMP1		equ	017h	; sub_rt
+   22/  2 :                             
+   23/  2 : =18H                        SUBARG1L	equ	018h
+   24/  2 : =19H                        SUBARG1H	equ	019h
+   25/  2 : =1AH                        SUBARG3L	equ	01Ah
+   26/  2 : =1BH                        SUBARG3H	equ	01Bh
+   27/  2 :                             
+   28/  2 : =1CH                        DIVARG1L		equ  01Ch
+   29/  2 : =1DH                        DIVARG1H	equ	01Dh
+   30/  2 : =1EH                        DIVRET_L		equ	01Eh
+   31/  2 : =1FH                        DIVRET_H		equ	01Fh
+   32/  2 : =23H                        DIVMOD_L	equ	023h
+   33/  2 : =24H                        DIVMOD_H	equ	024h
+   34/  2 : =25H                        DIVARG2L		equ  025h
+   35/  2 :                             
+   36/  2 : =32H                        ADCVAL_H	equ	032h
+   37/  2 : =31H                        ADCVAL_L		equ	031h
+   38/  2 :                             
+   39/ 40 :                             	org 40h
+   40/ 40 :                             init:
+   41/ 40 :                             	; Register clear
+   42/ 40 : 10                          	LAI	0
+   43/ 41 : 4F 00                       	LDEI	0
+   44/ 43 : 4E 00                       	LHLI	0
+   45/ 45 :                             
+   46/ 45 :                             	; P5_0 = #CS, P6_0 = #EOC. Others = N.C.
+   47/ 45 : 10                          	LAI	0
+   48/ 46 : 3F E4                       	OP	4
+   49/ 48 : 3F E5                       	OP	5
+   50/ 4A : 3F E6                       	OP	6
+   51/ 4C :                             
+   52/ 4C : 3F E0                       	OP	0	; ADC port
+   53/ 4E :                             
+   54/ 4E :                             	; LED port
+   55/ 4E : 1A                          	LAI	0Ah
+   56/ 4F : 73                          	OP3
+   57/ 50 :                             
+   58/ 50 :                             	; DIP Switch port
+   59/ 50 : 3F C1                       	IP	1
+   60/ 52 :                             	
+ AS V1.42 Beta [Bld 293] - Source File board_main.asm - Page 2 - 3/11/2026 19:46:42
+
+
+   61/ 52 :                             	; Display LED port
+   62/ 52 : 1F                          	LAI	0Fh
+   63/ 53 : 3F E2                       	OP	2
+   64/ 55 :                             
+   65/ 55 : 11                          	LAI	1
+   66/ 56 : 3F E7                       	OP	7
+   67/ 58 :                             main:  
+   68/ 58 : 10                          	LAI 0
+   69/ 59 : 4F 00                       	LDEI	0	; DE <- 0x00  
+   70/ 5B :                             
+   71/ 5B : 78                          	RC			; Reset carry
+   72/ 5C :                             
+   73/ 5C :                             	; Set stack pointer SP = 0xDE
+   74/ 5C : 4E 14                       	LHLI	TEMP1	; Set HL = TEMP1 addr
+   75/ 5E : 1F                          	LAI	0Fh
+   76/ 5F : 57                          	ST			; (TEMP1) <- 0xF
+   77/ 60 : 1D                          	LAI	0Dh
+   78/ 61 : 3F 31                       	TAMSP		; Stack pointer <- A & (HL)[3:1] & 0 = 0xDE
+   79/ 63 :                             
+   80/ 63 :                             	; Clear RAM val TEMP1, TEMP2, TEMP3
+   81/ 63 : 10                          	LAI	0
+   82/ 64 : 39 14                       	XADR	(TEMP1)
+   83/ 66 : 10                          	LAI	0
+   84/ 67 : 39 15                       	XADR	(TEMP2)
+   85/ 69 : 10                          	LAI	0
+   86/ 6A : 39 16                       	XADR	(TEMP3)
+   87/ 6C : 10                          	LAI	0
+   88/ 6D : 39 17                       	XADR	(SUBTMP1)
+   89/ 6F : 10                          	LAI	0
+   90/ 70 : 39 32                       	XADR	(ADCVAL_H)
+   91/ 72 : 10                          	LAI	0
+   92/ 73 : 39 31                       	XADR	(ADCVAL_L)
+   93/ 75 :                             
+   94/ 75 :                             	; Clear RAM val
+   95/ 75 : 10                          	LAI	0
+   96/ 76 : 39 18                       	XADR	(SUBARG1L)
+   97/ 78 : 10                          	LAI	0
+   98/ 79 : 39 19                       	XADR	(SUBARG1H)
+   99/ 7B : 10                          	LAI	0
+  100/ 7C : 39 1A                       	XADR	(SUBARG3L)
+  101/ 7E : 10                          	LAI	0
+  102/ 7F : 39 1B                       	XADR	(SUBARG3H)
+  103/ 81 :                             
+  104/ 81 :                             
+  105/ 81 :                             	
+  106/ 81 :                             	; Clear RAM val DISPVAL1, DISPVAL2, DISPVAL3
+  107/ 81 :                             	; display '-'
+  108/ 81 : 1D                          	LAI	0Dh
+  109/ 82 : 39 20                       	XADR	(DISPVAL1)
+  110/ 84 : 1D                          	LAI	0Dh
+  111/ 85 : 39 21                       	XADR	(DISPVAL2)
+  112/ 87 : 1D                          	LAI	0Dh
+  113/ 88 : 39 22                       	XADR	(DISPVAL3)
+  114/ 8A :                             
+  115/ 8A :                             	; Clear RAM val CNT1
+  116/ 8A : 11                          	LAI	01h
+  117/ 8B : 39 30                       	XADR	(CNT1)
+  118/ 8D :                             
+  119/ 8D : 31 03                       	call	disp_num_to_led_100
+  120/ 8F :                             
+ AS V1.42 Beta [Bld 293] - Source File board_main.asm - Page 3 - 3/11/2026 19:46:42
+
+
+  121/ 8F :                             	; Set initial LED
+  122/ 8F : 38 30                       	LADR	(CNT1)
+  123/ 91 : 73                          	OP3
+  124/ 92 :                             
+  125/ 92 :                             loop:
+  126/ 92 :                             	; LED count-up
+  127/ 92 : 3D 30                       	IDRS		(CNT1)	; +1
+  128/ 94 : 00                          	nop				; skip if overflow
+  129/ 95 :                             
+  130/ 95 : 38 30                       	LADR	(CNT1)	; A <- ++i
+  131/ 97 : 73                              	OP3         			; P3 <- A
+  132/ 98 :                             
+  133/ 98 :                             ADC_conv:
+  134/ 98 :                             	; Set #CS (#CS = 0)
+  135/ 98 : 11                          	LAI	01h
+  136/ 99 : 3F E5                       	OP	5
+  137/ 9B :                             
+  138/ 9B :                             	; ADC conversion time
+  139/ 9B :                             	; call	delay		; wait for ADC
+  140/ 9B :                             	
+  141/ 9B :                             	; Wait until P6_0 = #EOC is on
+  142/ 9B :                             eoc_wait_lp:
+  143/ 9B : 3F C6                       	IP 6
+  144/ 9D : 7F                          	CMA
+  145/ 9E : 74                          	SKABT 0	; if A_0 = 1 (P6_0 = 0)
+  146/ 9F : 20 9B                       	JMP	eoc_wait_lp
+  147/ A1 :                             
+  148/ A1 :                             	; Clear #CS
+  149/ A1 : 10                          	LAI 00h
+  150/ A2 : 3F E5                       	OP 5
+  151/ A4 :                             
+  152/ A4 :                             	; Prepare SPI
+  153/ A4 : 16                          	LAI	06h
+  154/ A5 : 3F EF                       	OP	0Fh	; Set 
+  155/ A7 :                             
+  156/ A7 :                             	; set SPI sending data
+  157/ A7 : 4E 14                       	LHLI	TEMP1	; Set HL = TEMP1 addr
+  158/ A9 : 10                          	LAI	00h		; Transfer data 0x0
+  159/ AA : 57                          	ST			; (TEMP1) <- A = 0x0
+  160/ AB :                             
+  161/ AB : 10                          	LAI 00h		; A <- 0x0
+  162/ AC :                             
+  163/ AC : 3F 3E                       	TAMSIO		; SIO		<- (HL) & A
+  164/ AE :                             
+  165/ AE :                             	; Start SPI transfer
+  166/ AE : 3F 33                       	SIO
+  167/ B0 :                             
+  168/ B0 :                             	; Wait until transfer is completed
+  169/ B0 :                             wait_spi_tr:
+  170/ B0 : 3F 42                       	SKI	2
+  171/ B2 : B0                          	JCP	wait_spi_tr
+  172/ B3 :                             
+  173/ B3 :                             	; Receive SPI data
+  174/ B3 : 4E 16                       	LHLI	TEMP3	; Set HL = TEMP1 addr
+  175/ B5 : 3F 3A                       	TSIOAM
+  176/ B7 :                             
+  177/ B7 :                             	; Save data
+  178/ B7 : 4E 32                       	LHLI	ADCVAL_H
+  179/ B9 : 57                          	ST
+  180/ BA :                             
+ AS V1.42 Beta [Bld 293] - Source File board_main.asm - Page 4 - 3/11/2026 19:46:42
+
+
+  181/ BA : 38 16                       	LADR		(TEMP3)
+  182/ BC : 4E 31                       	LHLI	ADCVAL_L
+  183/ BE : 57                          	ST
+  184/ BF :                             
+  185/ BF :                             ADC_end:
+  186/ BF :                             	; Set #CS (#CS = 0)
+  187/ BF : 11                          	LAI	01h
+  188/ C0 : 3F E5                       	OP	5
+  189/ C2 :                             
+  190/ C2 :                             debug_disp:
+  191/ C2 :                             
+  192/ C2 :                             
+  193/ C2 :                             process_recv_val:
+  194/ C2 :                             
+  195/ C2 :                             div_ADCval_5:
+  196/ C2 :                             
+  197/ C2 : 4E 25                       	LHLI	DIVARG2L
+  198/ C4 : 15                          	LAI	5
+  199/ C5 : 57                          	ST
+  200/ C6 :                             
+  201/ C6 : 38 31                       	LADR	(ADCVAL_L)	
+  202/ C8 : 39 1C                       	XADR	(DIVARG1L)
+  203/ CA :                             
+  204/ CA : 38 32                       	LADR	(ADCVAL_H)
+  205/ CC : 39 1D                       	XADR	(DIVARG1H)
+  206/ CE :                             
+  207/ CE : 31 5F                       	call	div84_rt
+  208/ D0 :                             
+  209/ D0 : 38 23                       	LADR	(DIVMOD_L)
+  210/ D2 :                             
+  211/ D2 :                             rotate_left_digt:
+  212/ D2 :                             	; rotate left
+  213/ D2 : 78                          	RC
+  214/ D3 : 3F B3                       	RAR		; C A3 A2 A1 (C = A0)
+  215/ D5 : 3F B3                       	RAR		; A0 C A3 A2 (C = A1)
+  216/ D7 : 3F B3                       	RAR		; A1 A0 C A3 (C = A2)
+  217/ D9 : 3F B3                       	RAR		; A2 A1 A0 C (C = A3)
+  218/ DB :                             
+  219/ DB :                             	; set display
+  220/ DB : 4E 22                       	LHLI	DISPVAL3		; set HL addr
+  221/ DD : 57                          	ST
+  222/ DE :                             
+  223/ DE :                             div_ADCval_10:
+  224/ DE :                             	
+  225/ DE : 4E 25                       	LHLI	DIVARG2L
+  226/ E0 : 1A                          	LAI	0Ah
+  227/ E1 : 57                          	ST
+  228/ E2 :                             
+  229/ E2 : 38 1E                       	LADR	(DIVRET_L)	
+  230/ E4 : 39 1C                       	XADR	(DIVARG1L)
+  231/ E6 :                             
+  232/ E6 : 38 1F                       	LADR	(DIVRET_H)
+  233/ E8 : 39 1D                       	XADR	(DIVARG1H)
+  234/ EA :                             
+  235/ EA : 31 5F                       	call	div84_rt
+  236/ EC :                             
+  237/ EC : 4E 21                       	LHLI	DISPVAL2
+  238/ EE : 38 23                       	LADR	(DIVMOD_L)
+  239/ F0 : 57                          	ST
+  240/ F1 :                             
+ AS V1.42 Beta [Bld 293] - Source File board_main.asm - Page 5 - 3/11/2026 19:46:42
+
+
+  241/ F1 : 4E 20                       	LHLI	DISPVAL1
+  242/ F3 : 3C 1E                       	DDRS	(DIVRET_L)
+  243/ F5 : 00                          	nop
+  244/ F6 : 38 1E                       	LADR	(DIVRET_L)
+  245/ F8 : 57                          	ST
+  246/ F9 :                             
+  247/ F9 : 31 03                       	call disp_num_to_led_100
+  248/ FB :                             	
+  249/ FB : 31 A2                           call delay2
+  250/ FD : 31 A2                           call delay2
+  251/ FF : 31 A2                           call delay2
+  252/101 :                             
+  253/101 :                             
+  254/101 : 20 92                           JMP  loop
+  255/103 :                             
+  256/103 :                             disp_num_to_led_100:
+  257/103 :                             
+  258/103 :                             	; Latch on-off
+  259/103 :                             	; Left LED Latch = en
+  260/103 : 16                          	LAI	06h
+  261/104 : 3F E2                       	OP	2
+  262/106 :                             
+  263/106 :                             	; Dispval1 -> 100 
+  264/106 : 38 20                       	LADR	(DISPVAL1)
+  265/108 : 3F E7                       	OP	7
+  266/10A :                             
+  267/10A : 17                          	LAI   07h
+  268/10B : 3F E2                       	OP	2
+  269/10D :                             
+  270/10D : 15                          	LAI   05h
+  271/10E : 3F E2                       	OP	2
+  272/110 :                             
+  273/110 : 38 21                       	LADR	(DISPVAL2)
+  274/112 : 3F E7                       	OP	7
+  275/114 :                             
+  276/114 : 17                          	LAI   07h
+  277/115 : 3F E2                       	OP	2
+  278/117 :                             
+  279/117 : 13                          	LAI	03h
+  280/118 : 3F E2                       	OP	2
+  281/11A :                             
+  282/11A : 38 22                       	LADR	(DISPVAL3)
+  283/11C : 3F E7                       	OP	7
+  284/11E :                             
+  285/11E : 17                          	LAI 07h
+  286/11F : 3F E2                       	OP	2
+  287/121 :                             
+  288/121 : 53                          	RT
+  289/122 :                             
+  290/122 :                             ; A <- D - E
+  291/122 :                             sub_4D_4E_rt:
+  292/122 :                             	; 2's complement
+  293/122 : 3E 8B                       	TEA		; A <- E
+  294/124 : 7F                          	CMA		; ~A
+  295/125 :                             
+  296/125 : 4E 17                       	LHLI	SUBTMP1	; set HL SUBTMP1
+  297/127 : 57                          	ST		; (HL) <- A = (~E)
+  298/128 :                             
+  299/128 : 3E AB                       	TDA		; A <- D
+  300/12A :                             
+ AS V1.42 Beta [Bld 293] - Source File board_main.asm - Page 6 - 3/11/2026 19:46:42
+
+
+  301/12A : 79                          	SC		; Set carry	
+  302/12B :                             
+  303/12B : 7C                          	ACSC	; A <- A + (HL) + C = D + (~E) + 1. skip if carry
+  304/12C : AF                          	JCP	sub_4D_4E_borrow		; skip if overflow
+  305/12D :                             
+  306/12D :                             sub_4D_4E_noborrow:
+  307/12D : 78                          	RC	; Carry = 0
+  308/12E : 53                          	RT
+  309/12F :                             
+  310/12F :                             sub_4D_4E_borrow:
+  311/12F : 79                          	SC	; Carry = 1
+  312/130 : 53                          	RT
+  313/131 :                             
+  314/131 :                             ; SUBARG3H & SUBARG3L = SUBARG1H & SUBARG1L - E
+  315/131 :                             sub84_rt:
+  316/131 :                             	; init
+  317/131 : 10                          	LAI	0
+  318/132 : 4E 1A                       	LHLI		SUBARG3L
+  319/134 : 57                          	ST
+  320/135 : 4E 1B                       	LHLI		SUBARG3H
+  321/137 : 57                          	ST
+  322/138 :                             
+  323/138 :                             	; load 
+  324/138 : 38 18                       	LADR	(SUBARG1L)
+  325/13A : 3E AA                       	TAD
+  326/13C :                             
+  327/13C :                             ; Debug
+  328/13C :                             
+  329/13C :                             	; A <- D - E
+  330/13C : 31 22                       	call	sub_4D_4E_rt
+  331/13E :                             	
+  332/13E :                             	; (SUBARG3L)	<- A = D - "
+  333/13E : 4E 1A                       	LHLI		SUBARG3L
+  334/140 : 57                          	ST			
+  335/141 :                             
+  336/141 :                             	; if Carry	: mid-borrow
+  337/141 : 5A                          	SKC
+  338/142 : 21 46                       	JMP	sub84_nomidborrow	; skip if C = 1
+  339/144 : 21 4D                       	JMP	sub84_midborrow
+  340/146 :                             
+  341/146 :                             	; if not Carry : no mid-borrow
+  342/146 :                             sub84_nomidborrow:
+  343/146 :                             	; (SUBARG3H) <- (SUBARG1H)
+  344/146 : 38 19                       	LADR	(SUBARG1H)
+  345/148 : 4E 1B                       	LHLI		SUBARG3H
+  346/14A : 57                          	ST
+  347/14B :                             
+  348/14B : 78                          	RC
+  349/14C :                             
+  350/14C : 53                          	RT	
+  351/14D :                             
+  352/14D :                             sub84_midborrow:
+  353/14D :                             	; (SUBARG1H) <- (SUBARG1H) - 1
+  354/14D : 3C 19                       	DDRS	(SUBARG1H)		
+  355/14F : 21 58                       	JMP	sub84_noborrow; if not borrow
+  356/151 :                             
+  357/151 :                             sub84_borrow:
+  358/151 :                             	; (SUBARG3H) <- (SUBARG1H)
+  359/151 : 38 19                       	LADR	(SUBARG1H)
+  360/153 : 4E 1B                       	LHLI		SUBARG3H
+ AS V1.42 Beta [Bld 293] - Source File board_main.asm - Page 7 - 3/11/2026 19:46:42
+
+
+  361/155 : 57                          	ST
+  362/156 :                             	
+  363/156 :                             	; Set carry
+  364/156 : 79                          	SC		
+  365/157 :                             
+  366/157 : 53                          	RT
+  367/158 :                             
+  368/158 :                             sub84_noborrow:
+  369/158 :                             	; (SUBARG3H) <- (SUBARG1H)
+  370/158 : 38 19                       	LADR	(SUBARG1H)
+  371/15A : 4E 1B                       	LHLI		SUBARG3H
+  372/15C : 57                          	ST					
+  373/15D :                             
+  374/15D :                             	; Reset carry
+  375/15D : 78                          	RC		
+  376/15E :                             
+  377/15E : 53                          	RT
+  378/15F :                             
+  379/15F :                             div84_rt:
+  380/15F : 10                          	LAI	0
+  381/160 : 4E 1E                       	LHLI		DIVRET_L
+  382/162 : 57                          	ST
+  383/163 : 4E 1F                       	LHLI		DIVRET_H
+  384/165 : 57                          	ST
+  385/166 : 4E 23                       	LHLI		DIVMOD_L
+  386/168 : 57                          	ST
+  387/169 : 4E 24                       	LHLI		DIVMOD_H
+  388/16B : 57                          	ST
+  389/16C :                             
+  390/16C : 38 1C                       	LADR	(DIVARG1L)
+  391/16E : 4E 18                       	LHLI		SUBARG1L
+  392/170 : 57                          	ST
+  393/171 :                             
+  394/171 : 38 1D                       	LADR	(DIVARG1H)
+  395/173 : 4E 19                       	LHLI		SUBARG1H
+  396/175 : 57                          	ST
+  397/176 :                             
+  398/176 :                             	; if 2L = 0 then RT
+  399/176 : 38 25                       	LADR	(DIVARG2L)
+  400/178 : 3E 8A                       	TAE
+  401/17A :                             	
+  402/17A : 3F 60                       	SKAEI	0
+  403/17C : 21 7F                       	JMP	div84_loop		; skip if A = 0
+  404/17E :                             
+  405/17E :                             div84_zerodiv:
+  406/17E : 53                          	RT
+  407/17F :                             
+  408/17F :                             div84_loop:
+  409/17F : 31 31                       	call	sub84_rt
+  410/181 :                             
+  411/181 : 5A                          	SKC	
+  412/182 : 21 8F                       	JMP	div84_noborrow
+  413/184 :                             
+  414/184 :                             div84_borrow:
+  415/184 : 38 18                       	LADR	(SUBARG1L)
+  416/186 : 4E 23                       	LHLI		DIVMOD_L
+  417/188 : 57                          	ST
+  418/189 :                             
+  419/189 : 38 19                       	LADR	(SUBARG1H)
+  420/18B : 4E 24                       	LHLI		DIVMOD_H
+ AS V1.42 Beta [Bld 293] - Source File board_main.asm - Page 8 - 3/11/2026 19:46:42
+
+
+  421/18D : 57                          	ST
+  422/18E :                             
+  423/18E : 53                          	RT
+  424/18F :                             
+  425/18F :                             div84_noborrow:
+  426/18F : 38 1B                       	LADR	(SUBARG3H)
+  427/191 : 4E 19                       	LHLI		SUBARG1H
+  428/193 : 57                          	ST
+  429/194 :                             
+  430/194 : 38 1A                       	LADR	(SUBARG3L)
+  431/196 : 4E 18                       	LHLI		SUBARG1L
+  432/198 : 57                          	ST
+  433/199 :                             	
+  434/199 : 3D 1E                       	IDRS		(DIVRET_L)
+  435/19B : 21 A0                       	JMP	div84_nocarry		; skip if overflow
+  436/19D :                             
+  437/19D :                             div84_carry:
+  438/19D : 3D 1F                       	IDRS		(DIVRET_H)	
+  439/19F : 00                          	nop
+  440/1A0 :                             div84_nocarry:
+  441/1A0 : 21 7F                       	JMP	div84_loop
+  442/1A2 :                             	
+  443/1A2 :                             delay2:
+  444/1A2 : 4B                          	XAE	; A -> E
+  445/1A3 : 3E 8E                       	PSHDE
+  446/1A5 :                             
+  447/1A5 :                             dly_init_ram:
+  448/1A5 : 10                          	LAI	0
+  449/1A6 : 39 13                       	XADR	(DLY_REG4)
+  450/1A8 :                             dly_loop4:
+  451/1A8 : 10                          	LAI	0
+  452/1A9 : 39 12                       	XADR	(DLY_REG3)
+  453/1AB :                             dly_loop3:
+  454/1AB : 10                          	LAI	0
+  455/1AC : 39 11                       	XADR	(DLY_REG2)
+  456/1AE :                             dly_loop2:
+  457/1AE : 10                          	LAI	0				; 1 cycle 
+  458/1AF : 39 10                       	XADR	(DLY_REG1)	; 2 cycles
+  459/1B1 :                             dly_loop1:
+  460/1B1 : 3D 10                       	IDRS		(DLY_REG1)	; 2 cycles x 16
+  461/1B3 : 21 B1                       	JMP		dly_loop1		; 2 cycles x 15
+  462/1B5 : 3D 11                       	IDRS		(DLY_REG2)
+  463/1B7 : 21 AE                       	JMP		dly_loop2
+  464/1B9 : 3D 12                       	IDRS		(DLY_REG3)
+  465/1BB : 21 AB                       	JMP		dly_loop3
+  466/1BD :                             ;	IDRS		(DLY_REG4)
+  467/1BD :                             ;	JMP		dly_loop4
+  468/1BD :                             
+  469/1BD : 3E 8F                       	POPDE
+  470/1BF : 4B                          	XAE	; E -> A
+  471/1C0 :                             
+  472/1C0 : 53                          	RT
+  473/1C1 :                             
+  474/1C1 :                                     end
+ AS V1.42 Beta [Bld 293] - Source File board_main.asm - Page 9 - 3/11/2026 19:46:42
+
+
+  Symbol Table (* = unused):
+  --------------------------
+
+ ADCVAL_H :                      32 - |  ADCVAL_L :                      31 - |
+*ADC_CONV :                      98 C | *ADC_END :                      0BF C |
+*ARCHITECTURE :                                        "i386-unknown-win32" - |
+*CASESENSITIVE :                  0 - |  CNT1 :                          30 - |
+*CONSTPI :        3.141592653589793 - | *DATE :                 "3/11/2026" - |
+*DEBUG_DISP :                   0C2 C |  DELAY2 :                       1A2 C |
+ DISPVAL1 :                      20 - |  DISPVAL2 :                      21 - |
+ DISPVAL3 :                      22 - |  DISP_NUM_TO_LED_100 :          103 C |
+*DIV84_BORROW :                 184 C | *DIV84_CARRY :                  19D C |
+ DIV84_LOOP :                   17F C |  DIV84_NOBORROW :               18F C |
+ DIV84_NOCARRY :                1A0 C |  DIV84_RT :                     15F C |
+*DIV84_ZERODIV :                17E C |  DIVARG1H :                      1D - |
+ DIVARG1L :                      1C - |  DIVARG2L :                      25 - |
+ DIVMOD_H :                      24 - |  DIVMOD_L :                      23 - |
+ DIVRET_H :                      1F - |  DIVRET_L :                      1E - |
+*DIV_ADCVAL_10 :                0DE C | *DIV_ADCVAL_5 :                 0C2 C |
+*DLY_INIT_RAM :                 1A5 C |  DLY_LOOP1 :                    1B1 C |
+ DLY_LOOP2 :                    1AE C |  DLY_LOOP3 :                    1AB C |
+*DLY_LOOP4 :                    1A8 C |  DLY_REG1 :                      10 - |
+ DLY_REG2 :                      11 - |  DLY_REG3 :                      12 - |
+ DLY_REG4 :                      13 - |  EOC_WAIT_LP :                   9B C |
+*FALSE :                          0 - | *FLOATMAX :      1.797693134866E308 - |
+*HAS64 :                          1 - |  INIT :                          40 C |
+*LISTON :                         1 - |  LOOP :                          92 C |
+*MACEXP :                         7 - | *MAIN :                          58 C |
+*MOMCPU :                      7508 - | *MOMCPUNAME :                "7508" - |
+*NESTMAX :                      100 - | *PROCESS_RECV_VAL :             0C2 C |
+*RELAXED :                        0 - | *ROTATE_LEFT_DIGT :             0D2 C |
+*SUB84_BORROW :                 151 C |  SUB84_MIDBORROW :              14D C |
+ SUB84_NOBORROW :               158 C |  SUB84_NOMIDBORROW :            146 C |
+ SUB84_RT :                     131 C |  SUBARG1H :                      19 - |
+ SUBARG1L :                      18 - |  SUBARG3H :                      1B - |
+ SUBARG3L :                      1A - |  SUBTMP1 :                       17 - |
+ SUB_4D_4E_BORROW :             12F C | *SUB_4D_4E_NOBORROW :           12D C |
+ SUB_4D_4E_RT :                 122 C |  TEMP1 :                         14 - |
+ TEMP2 :                         15 - |  TEMP3 :                         16 - |
+*TIME :                  "19:46:42" - | *TRUE :                           1 - |
+*VERSION :                     142F - |  WAIT_SPI_TR :                  0B0 C |
+
+     75 symbols
+     31 unused symbols
+
+ AS V1.42 Beta [Bld 293] - Source File board_main.asm - Page 10 - 3/11/2026 19:46:42
+
+
+  Code Pages:
+  ----------
+
+STANDARD (0 changed characters)
+
+1 code page
+ AS V1.42 Beta [Bld 293] - Source File board_main.asm - Page 11 - 3/11/2026 19:46:42
+
+
+  Space Used in CODE :
+  --------------------
+
+0-1                40-1C0             
+
+
+0.02 seconds assembly time
+
+    475 lines source file
+      2 passes
+      0 errors
+      0 warnings
